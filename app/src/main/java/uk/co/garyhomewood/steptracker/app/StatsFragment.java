@@ -14,7 +14,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import uk.co.garyhomewood.steptracker.app.datastore.StepTrackerContract;
 import uk.co.garyhomewood.steptracker.app.datastore.StepTrackerDbHelper;
@@ -78,8 +83,22 @@ public class StatsFragment extends Fragment {
 
                 while (c.moveToNext()) {
                     Integer duration = c.getInt(c.getColumnIndexOrThrow(StepTrackerContract.Climb.COLUMN_NAME_DURATION));
-                    Log.d("Stats", "duration: " + duration);
-                    stats.add(duration.toString());
+                    DecimalFormat df = new DecimalFormat("#.00");
+
+                    String timestamp = c.getString(c.getColumnIndexOrThrow(StepTrackerContract.Climb.COLUMN_NAME_DATE));
+                    SimpleDateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+                    Date timestampDate = null;
+                    try {
+                        timestampDate = timestampFormat.parse(timestamp);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    SimpleDateFormat printFormat = new SimpleDateFormat("EEEE MMMM d yyyy h:mma");
+
+                    String msg = printFormat.format(timestampDate) + ": " + df.format((double) duration/1000) + " seconds";
+
+                    Log.d("Stats", msg);
+                    stats.add(msg);
                 }
             }
             return stats;

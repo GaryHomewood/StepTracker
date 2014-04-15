@@ -42,6 +42,7 @@ public class MainActivity extends ActionBarActivity {
     private ActionBar ab;
     private long elapsedTime;
     private StopwatchFragment stopwatchFragment;
+    private StatsFragment statsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +84,9 @@ public class MainActivity extends ActionBarActivity {
         ab.hide();
 
         stopwatchFragment = StopwatchFragment.newInstance();
+        statsFragment = StatsFragment.newInstance();
         fragmentList.add(0, stopwatchFragment);
-        fragmentList.add(1, StatsFragment.newInstance());
+        fragmentList.add(1, statsFragment);
 
         stepTrackerPagerAdapter = new StepTrackerPagerAdapter(getSupportFragmentManager());
 
@@ -204,6 +206,12 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Long i) {
             ab.hide();
             stopwatchFragment.resetClock();
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .detach(statsFragment)
+                    .attach(statsFragment)
+                    .commit();
         }
     }
 }
