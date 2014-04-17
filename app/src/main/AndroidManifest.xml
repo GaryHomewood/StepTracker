@@ -25,6 +25,11 @@
             </intent-filter>
         </activity>
 
+        <provider
+            android:authorities="uk.co.garyhomewood.steptracker.app.datastore.StepTrackerProvider"
+            android:name="uk.co.garyhomewood.steptracker.app.datastore.StepTrackerProvider"
+            android:multiprocess="true"/>
+
         <!--<activity-->
             <!--android:name="uk.co.garyhomewood.steptracker.app.HomeActivity"-->
             <!--android:launchMode="singleTask" >-->

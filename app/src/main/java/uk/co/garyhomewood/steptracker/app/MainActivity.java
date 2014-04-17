@@ -43,6 +43,7 @@ public class MainActivity extends ActionBarActivity {
     private long elapsedTime;
     private StopwatchFragment stopwatchFragment;
     private StatsFragment statsFragment;
+    private StatsLoaderFragment statsLoaderFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,10 +84,13 @@ public class MainActivity extends ActionBarActivity {
         ab.setCustomView(actionBarButtons);
         ab.hide();
 
+        // create the fragments for the viewpager
         stopwatchFragment = StopwatchFragment.newInstance();
         statsFragment = StatsFragment.newInstance();
+        statsLoaderFragment = StatsLoaderFragment.newInstance();
         fragmentList.add(0, stopwatchFragment);
         fragmentList.add(1, statsFragment);
+        fragmentList.add(2, statsLoaderFragment);
 
         stepTrackerPagerAdapter = new StepTrackerPagerAdapter(getSupportFragmentManager());
 
