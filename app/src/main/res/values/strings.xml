@@ -6,5 +6,6 @@
     <string name="action_settings">Settings</string>
     <string name="discard_label">CANCEL</string>
     <string name="save_label">DONE</string>
+    <string name="action_new">New staircase</string>
 
 </resources>

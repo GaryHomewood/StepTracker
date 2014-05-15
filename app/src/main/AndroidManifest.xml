@@ -25,6 +25,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".NewStaircaseActivity">
+
+        </activity>
+
         <provider
             android:authorities="uk.co.garyhomewood.steptracker.app.datastore.StepTrackerProvider"
             android:name="uk.co.garyhomewood.steptracker.app.datastore.StepTrackerProvider"
@@ -33,16 +37,9 @@
         <!--<activity-->
             <!--android:name="uk.co.garyhomewood.steptracker.app.HomeActivity"-->
             <!--android:launchMode="singleTask" >-->
-
-            <!--&lt;!&ndash;<intent-filter>&ndash;&gt;-->
-                <!--&lt;!&ndash;<action android:name="android.intent.action.MAIN" />&ndash;&gt;-->
-                <!--&lt;!&ndash;<category android:name="android.intent.category.LAUNCHER" />&ndash;&gt;-->
-            <!--&lt;!&ndash;</intent-filter>&ndash;&gt;-->
-
             <!--<intent-filter>-->
-                <!--<action android:name="android.nfc.action.NDEF_DISCOVERED"/>-->
-                <!--<category android:name="android.intent.category.DEFAULT"/>-->
-                <!--<data android:mimeType="text/plain" />-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
             <!--</intent-filter>-->
         <!--</activity>-->
 

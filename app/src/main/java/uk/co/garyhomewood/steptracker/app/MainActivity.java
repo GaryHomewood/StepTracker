@@ -17,11 +17,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -44,6 +46,8 @@ public class MainActivity extends ActionBarActivity {
     private StopwatchFragment stopwatchFragment;
     private StatsFragment statsFragment;
     private StatsLoaderFragment statsLoaderFragment;
+    private DrawerLayout navigationDrawer;
+    private View actionBarButtons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,28 +65,28 @@ public class MainActivity extends ActionBarActivity {
         techLists = new String[][] { new String[] { NfcF.class.getName() } };
 
         // custom actionbar with save and cancel
-        ab = getSupportActionBar();
-        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View actionBarButtons = inflater.inflate(R.layout.time_actionbar, new LinearLayout(this), false);
-        View cancelActionView = actionBarButtons.findViewById(R.id.action_cancel);
-        View doneActionView = actionBarButtons.findViewById(R.id.action_done);
-        cancelActionView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            }
-        });
-        doneActionView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ContentValues values = new ContentValues();
-                values.put(StepTrackerContract.Climb.COLUMN_NAME_STAIRCASE_ID, "1");
-                values.put(StepTrackerContract.Climb.COLUMN_NAME_DURATION, elapsedTime);
-                new Save(getApplicationContext()).execute(values);
-            }
-        });
-        ab.setCustomView(actionBarButtons);
-        ab.hide();
+//        ab = getSupportActionBar();
+//        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+//        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        actionBarButtons = inflater.inflate(R.layout.time_actionbar, new LinearLayout(this), false);
+//        View cancelActionView = actionBarButtons.findViewById(R.id.action_cancel);
+//        View doneActionView = actionBarButtons.findViewById(R.id.action_done);
+//        cancelActionView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//            }
+//        });
+//        doneActionView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                ContentValues values = new ContentValues();
+//                values.put(StepTrackerContract.Climb.COLUMN_NAME_STAIRCASE_ID, "1");
+//                values.put(StepTrackerContract.Climb.COLUMN_NAME_DURATION, elapsedTime);
+//                new Save(getApplicationContext()).execute(values);
+//            }
+//        });
+        //ab.setCustomView(actionBarButtons);
+        //ab.hide();
 
         // create the fragments for the viewpager
         stopwatchFragment = StopwatchFragment.newInstance();
@@ -98,6 +102,27 @@ public class MainActivity extends ActionBarActivity {
         viewPager.setAdapter(stepTrackerPagerAdapter);
 
         stepTrackerPagerAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case R.id.action_new:
+                Intent intent = new Intent(this, NewStaircaseActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -119,13 +144,14 @@ public class MainActivity extends ActionBarActivity {
             if (s.contains("start")) {
                 Toast.makeText(this, "Start...", Toast.LENGTH_LONG).show();
                 stopwatchFragment.startClock();
-                ab.hide();
+                //ab.hide();
             }
 
             if (s.contains("stop")) {
                 Toast.makeText(this, "Stop", Toast.LENGTH_LONG).show();
                 elapsedTime = stopwatchFragment.stopClock();
-                ab.show();
+                //ab.show();
+                //ab.setCustomView(actionBarButtons);
             }
 
             stepTrackerPagerAdapter.notifyDataSetChanged();
