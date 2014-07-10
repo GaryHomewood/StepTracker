@@ -1,15 +1,12 @@
 package uk.co.garyhomewood.steptracker.app;
 
-import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.sqlite.SQLiteDatabase;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
-import android.nfc.tech.NfcF;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -17,13 +14,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -37,56 +35,17 @@ public class MainActivity extends ActionBarActivity {
     private StepTrackerPagerAdapter stepTrackerPagerAdapter;
     private ViewPager viewPager;
     private List<Fragment> fragmentList = new ArrayList<Fragment>();
-    private NfcAdapter nfcAdapter;
-    private PendingIntent pendingIntent;
-    private IntentFilter[] intentFilters;
-    private String[][] techLists;
-    private ActionBar ab;
-    private long elapsedTime;
     private StopwatchFragment stopwatchFragment;
     private StatsFragment statsFragment;
     private StatsLoaderFragment statsLoaderFragment;
-    private DrawerLayout navigationDrawer;
+    private ActionBar ab;
     private View actionBarButtons;
+    private long elapsedTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // nfc related configuration
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-        IntentFilter ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
-        try {
-            ndef.addDataType("*/*");
-        } catch (IntentFilter.MalformedMimeTypeException e) { }
-        intentFilters  = new IntentFilter[] {ndef};
-        techLists = new String[][] { new String[] { NfcF.class.getName() } };
-
-        // custom actionbar with save and cancel
-//        ab = getSupportActionBar();
-//        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-//        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        actionBarButtons = inflater.inflate(R.layout.time_actionbar, new LinearLayout(this), false);
-//        View cancelActionView = actionBarButtons.findViewById(R.id.action_cancel);
-//        View doneActionView = actionBarButtons.findViewById(R.id.action_done);
-//        cancelActionView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//            }
-//        });
-//        doneActionView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                ContentValues values = new ContentValues();
-//                values.put(StepTrackerContract.Climb.COLUMN_NAME_STAIRCASE_ID, "1");
-//                values.put(StepTrackerContract.Climb.COLUMN_NAME_DURATION, elapsedTime);
-//                new Save(getApplicationContext()).execute(values);
-//            }
-//        });
-        //ab.setCustomView(actionBarButtons);
-        //ab.hide();
 
         // create the fragments for the viewpager
         stopwatchFragment = StopwatchFragment.newInstance();
@@ -102,6 +61,7 @@ public class MainActivity extends ActionBarActivity {
         viewPager.setAdapter(stepTrackerPagerAdapter);
 
         stepTrackerPagerAdapter.notifyDataSetChanged();
+        processTag(getIntent());
     }
 
     @Override
@@ -128,33 +88,67 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFilters, techLists);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+        processTag(intent);
+    }
 
-        if (rawMsgs != null) {
-            NdefMessage msg = (NdefMessage) rawMsgs[0];
-            String s = GetText(msg.getRecords()[0]);
+    private void processTag(Intent intent) {
+        String action = intent.getAction();
 
-            StopwatchFragment stopwatchFragment = (StopwatchFragment) fragmentList.get(0);
+        if (action != null && action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
+            Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
 
-            if (s.contains("start")) {
-                Toast.makeText(this, "Start...", Toast.LENGTH_LONG).show();
-                stopwatchFragment.startClock();
-                //ab.hide();
+            if (messages != null) {
+                NdefMessage msg = (NdefMessage) messages[0];
+                NdefRecord ndefRecord = msg.getRecords()[0];
+                String nfcMessage = new String(ndefRecord.getPayload());
+
+                StopwatchFragment stopwatchFragment = (StopwatchFragment) fragmentList.get(0);
+
+                Toast.makeText(this, "Tag detected: " + nfcMessage, Toast.LENGTH_LONG).show();
+
+                if (nfcMessage.contains("start")) {
+                    Toast.makeText(this, "Start...", Toast.LENGTH_LONG).show();
+                    stopwatchFragment.startClock();
+                    ab.hide();
+                }
+
+                if (nfcMessage.contains("stop")) {
+                    Toast.makeText(this, "Stop", Toast.LENGTH_LONG).show();
+
+                    // custom actionbar with save and cancel
+                    ab = getSupportActionBar();
+                    ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+                    LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    actionBarButtons = inflater.inflate(R.layout.time_actionbar, new LinearLayout(this), false);
+                    View cancelActionView = actionBarButtons.findViewById(R.id.action_cancel);
+                    View doneActionView = actionBarButtons.findViewById(R.id.action_done);
+                    cancelActionView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    });
+                    doneActionView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            ContentValues values = new ContentValues();
+                            values.put(StepTrackerContract.Climb.COLUMN_NAME_STAIRCASE_ID, "1");
+                            values.put(StepTrackerContract.Climb.COLUMN_NAME_DURATION, elapsedTime);
+                            new Save(getApplicationContext()).execute(values);
+                        }
+                    });
+                    ab.setCustomView(actionBarButtons);
+
+                    elapsedTime = stopwatchFragment.stopClock();
+                    ab.show();
+                    ab.setCustomView(actionBarButtons);
+                }
+
+                stepTrackerPagerAdapter.notifyDataSetChanged();
             }
-
-            if (s.contains("stop")) {
-                Toast.makeText(this, "Stop", Toast.LENGTH_LONG).show();
-                elapsedTime = stopwatchFragment.stopClock();
-                //ab.show();
-                //ab.setCustomView(actionBarButtons);
-            }
-
-            stepTrackerPagerAdapter.notifyDataSetChanged();
         }
     }
 
@@ -234,7 +228,6 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         protected void onPostExecute(Long i) {
-            ab.hide();
             stopwatchFragment.resetClock();
 
             getSupportFragmentManager()
